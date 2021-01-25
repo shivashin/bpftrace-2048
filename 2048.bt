@@ -1,0 +1,28 @@
+interval:ms:99
+{
+  printf("\033[2J");
+  printf("\033[%d;%dH", 0, 0);
+  $frame = "\033[48;5;95m                                  \033[0m";
+  printf("%s\n", $frame);
+  $y = 0;
+  while($y < 4) {
+    $j = 0;
+    while($j < 3) {
+      $x = 0;
+      while($x < 4) {
+        $i = $x + $y*4;
+        printf("\033[48;5;95m\033[38;5;95m");
+        printf("  ");
+        printf("\033[48;5;96m\033[38;5;96m");
+        $x++;
+      }
+      printf("\033[48;5;95m\033[38;5;95m");
+      printf("  ");
+      printf("\033[48;5;95m\033[38;5;95m");
+      printf("\n");
+      $j++;
+    }
+    printf("%s\n", $frame);
+    $y++;
+  }
+}
