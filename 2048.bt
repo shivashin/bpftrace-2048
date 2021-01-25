@@ -1,6 +1,22 @@
+BEGIN {
+  $i = 0;
+  unroll(16) { @Board[$i] = 0; $i++; }
+  @Color[0] = 96;
+  @Color[1] = 95;
+  @Color[2] = 252;
+  @Color[4] = 225;
+  @Color[8] = 218;
+  @Color[16] = 136;
+  @Color[32] = 202;
+  @Color[64] = 196;
+  @Color[128] = 214;
+  @Color[256] = 178;
+  @Color[512] = 178;
+  printf("\033[2J");
+}
+
 interval:ms:99
 {
-  printf("\033[2J");
   printf("\033[%d;%dH", 0, 0);
   $frame = "\033[48;5;95m                                  \033[0m";
   printf("%s\n", $frame);
@@ -13,16 +29,27 @@ interval:ms:99
         $i = $x + $y*4;
         printf("\033[48;5;95m\033[38;5;95m");
         printf("  ");
-        printf("\033[48;5;96m\033[38;5;96m");
+        printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], $i < 8 ? 0 : 255);
+        if(!@Board[$i] || $j != 1) {
+          printf("      ");
+        } else if (@Board[$i] < 100) {
+          printf(" %3d  ", @Board[$i]);
+        } else {
+          printf(" %4d ", @Board[$i]);
+        }
         $x++;
       }
       printf("\033[48;5;95m\033[38;5;95m");
       printf("  ");
-      printf("\033[48;5;95m\033[38;5;95m");
+      printf("\033[48;5;136m\033[38;5;0m");
       printf("\n");
       $j++;
     }
     printf("%s\n", $frame);
     $y++;
   }
+}
+END
+{
+  clear(@Board); clear(@Color);
 }
