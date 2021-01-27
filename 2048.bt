@@ -1,6 +1,10 @@
 BEGIN {
+  // initialize board
   $i = 0;
   unroll(16) { @Board[$i] = 0; $i++; }
+  $first_position = rand % 16;
+  @Board[$first_position] = rand % 11 < 10 ? 2 : 4;
+  // define color
   @Color[0] = 96;
   @Color[1] = 95;
   @Color[2] = 252;
@@ -12,6 +16,7 @@ BEGIN {
   @Color[128] = 214;
   @Color[256] = 178;
   @Color[512] = 178;
+  // screen clear
   printf("\033[2J");
 }
 
