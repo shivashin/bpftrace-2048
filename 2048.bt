@@ -30,31 +30,69 @@ BEGIN {
 
 interval:ms:99
 {
-  if(@Key != 0) {
-    if(@Key == 104) { // h:left
-      @Board[0] = 4;
-    } else if(@Key == 106) { // j:down
+  if (@Key != 0) {
+    // move
+    if (@Key == 104) { // h:left
+      $prev = 0;
+      while ($prev < 16) {
+        if ($prev % 4) {
+          $next = $prev - 1;
+          if (@Board[$prev]) {
+            if (!@Board[$next]) {
+              @Board[$next] = @Board[$prev];
+              @Board[$prev] = 0;
+            } else {
+              if (@Board[$next] == @Board[$prev]) {
+                @Board[$next] = @Board[$next] + @Board[$prev];
+                @Board[$prev] = 0;
+              }
+            }
+          }
+        }
+        $prev++;
+      }
+    } else if (@Key == 106) { // j:down
       @Board[1] = 8;
-    } else if(@Key == 107) { // k:up
+    } else if (@Key == 107) { // k:up
       @Board[2] = 16;
-    } else if(@Key == 108) { // l:right
+    } else if (@Key == 108) { // l:right
       @Board[3] = 32;
+    }
+    // new number generate
+    $cnt = 0;
+    $i = 0;
+    while ($i < 16) {
+      if(!@Board[$i]) { $cnt++; }
+      $i++;
+    }
+    if (!$cnt) { 
+      exit(); // game over
+    } else {
+      $next_position = rand % $cnt;
+    }
+    $i = 0;
+    $cnt = 0;
+    while ($i < 16) {
+      if (!@Board[$i]) {
+        if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+      }
+      $i++;
     }
   }
   printf("\033[%d;%dH", 0, 0);
   $frame = "\033[48;5;95m                                  \033[0m";
   printf("%s\n", $frame);
   $y = 0;
-  while($y < 4) {
+  while ($y < 4) {
     $j = 0;
-    while($j < 3) {
+    while ($j < 3) {
       $x = 0;
-      while($x < 4) {
+      while ($x < 4) {
         $i = $x + $y*4;
         printf("\033[48;5;95m\033[38;5;95m");
         printf("  ");
         printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], $i < 8 ? 0 : 255);
-        if(!@Board[$i] || $j != 1) {
+        if (!@Board[$i] || $j != 1) {
           printf("      ");
         } else if (@Board[$i] < 100) {
           printf(" %3d  ", @Board[$i]);
