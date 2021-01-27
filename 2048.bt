@@ -1,4 +1,12 @@
+kprobe:pty_write  // (struct tty_struct *tty, const unsigned char *buf, int c)
+/ arg2 == 1 /
+{
+  // this value is ascii code
+  @Key = *((int8*)arg1);
+}
+
 BEGIN {
+  @Key = 0;
   // initialize board
   $i = 0;
   unroll(16) { @Board[$i] = 0; $i++; }
@@ -22,6 +30,9 @@ BEGIN {
 
 interval:ms:99
 {
+  if(@Key != 0) {
+    @Board[0] = @Key;
+  }
   printf("\033[%d;%dH", 0, 0);
   $frame = "\033[48;5;95m                                  \033[0m";
   printf("%s\n", $frame);
@@ -53,8 +64,9 @@ interval:ms:99
     printf("%s\n", $frame);
     $y++;
   }
+  @Key = 0; // clear the input key
 }
 END
 {
-  clear(@Board); clear(@Color);
+  clear(@Board); clear(@Color); clear(@Key);
 }
