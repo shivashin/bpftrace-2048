@@ -56,7 +56,24 @@ interval:ms:99
     } else if (@Key == 107) { // k:up
       @Board[2] = 16;
     } else if (@Key == 108) { // l:right
-      @Board[3] = 32;
+      $prev = 15;
+      while ($prev >= 0) {
+        if ($prev % 4 != 3) {
+          $next = $prev + 1;
+          if (@Board[$prev]) {
+            if (!@Board[$next]) {
+              @Board[$next] = @Board[$prev];
+              @Board[$prev] = 0;
+            } else {
+              if (@Board[$next] == @Board[$prev]) {
+                @Board[$next] = @Board[$next] + @Board[$prev];
+                @Board[$prev] = 0;
+              }
+            }
+          }
+        }
+        $prev--;
+      }
     }
     // new number generate
     $cnt = 0;
