@@ -31,6 +31,7 @@ BEGIN {
 interval:ms:99
 {
   if (@Key != 0) {
+    $is_move = 0;  // false
     // move
     if (@Key == 104) { // h:left
       $prev = 0;
@@ -41,10 +42,12 @@ interval:ms:99
             if (!@Board[$next]) {
               @Board[$next] = @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
             } else {
               if (@Board[$next] == @Board[$prev]) {
                 @Board[$next] = @Board[$next] + @Board[$prev];
                 @Board[$prev] = 0;
+                $is_move = 1; // true
               }
             }
           }
@@ -59,10 +62,12 @@ interval:ms:99
           if (!@Board[$next]) {
             @Board[$next] = @Board[$prev];
             @Board[$prev] = 0;
+            $is_move = 1; // true
           } else {
             if (@Board[$next] == @Board[$prev]) {
               @Board[$next] = @Board[$next] + @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
             }
           }
         }
@@ -76,10 +81,12 @@ interval:ms:99
           if (!@Board[$next]) {
             @Board[$next] = @Board[$prev];
             @Board[$prev] = 0;
+            $is_move = 1; // true
           } else {
             if (@Board[$next] == @Board[$prev]) {
               @Board[$next] = @Board[$next] + @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
             }
           }
         }
@@ -94,10 +101,12 @@ interval:ms:99
             if (!@Board[$next]) {
               @Board[$next] = @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
             } else {
               if (@Board[$next] == @Board[$prev]) {
                 @Board[$next] = @Board[$next] + @Board[$prev];
                 @Board[$prev] = 0;
+                $is_move = 1; // true
               }
             }
           }
@@ -106,24 +115,26 @@ interval:ms:99
       }
     }
     // new number generate
-    $cnt = 0;
-    $i = 0;
-    while ($i < 16) {
-      if(!@Board[$i]) { $cnt++; }
-      $i++;
-    }
-    if (!$cnt) { 
-      exit(); // game over
-    } else {
-      $next_position = rand % $cnt;
-    }
-    $i = 0;
-    $cnt = 0;
-    while ($i < 16) {
-      if (!@Board[$i]) {
-        if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+    if ($is_move) {
+      $cnt = 0;
+      $i = 0;
+      while ($i < 16) {
+        if(!@Board[$i]) { $cnt++; }
+        $i++;
       }
-      $i++;
+      if (!$cnt) { 
+        exit(); // game over
+      } else {
+        $next_position = rand % $cnt;
+      }
+      $i = 0;
+      $cnt = 0;
+      while ($i < 16) {
+        if (!@Board[$i]) {
+          if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+        }
+        $i++;
+      }
     }
   }
   printf("\033[%d;%dH", 0, 0);
