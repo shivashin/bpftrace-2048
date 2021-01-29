@@ -168,6 +168,7 @@ interval:ms:99
     printf("%s\n", $frame);
     $y++;
   }
+  printf("    h:Left j:Down k:Up l:Right    \n");
   @Key = 0; // clear the input key
 }
 END
