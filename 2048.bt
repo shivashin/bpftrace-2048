@@ -7,6 +7,7 @@ kprobe:pty_write  // (struct tty_struct *tty, const unsigned char *buf, int c)
 
 BEGIN {
   @Key = 0;
+  @Score = 0;
   // initialize board
   $i = 0;
   unroll(16) { @Board[$i] = 0; $i++; }
@@ -47,6 +48,7 @@ interval:ms:99
               if (@Board[$next] == @Board[$prev]) {
                 @Board[$next] = @Board[$next] + @Board[$prev];
                 @Board[$prev] = 0;
+                @Score += @Board[$next];
                 $is_move = 1; // true
               }
             }
@@ -67,6 +69,7 @@ interval:ms:99
             if (@Board[$next] == @Board[$prev]) {
               @Board[$next] = @Board[$next] + @Board[$prev];
               @Board[$prev] = 0;
+              @Score += @Board[$next];
               $is_move = 1; // true
             }
           }
@@ -86,6 +89,7 @@ interval:ms:99
             if (@Board[$next] == @Board[$prev]) {
               @Board[$next] = @Board[$next] + @Board[$prev];
               @Board[$prev] = 0;
+              @Score += @Board[$next];
               $is_move = 1; // true
             }
           }
@@ -106,6 +110,7 @@ interval:ms:99
               if (@Board[$next] == @Board[$prev]) {
                 @Board[$next] = @Board[$next] + @Board[$prev];
                 @Board[$prev] = 0;
+                @Score += @Board[$next];
                 $is_move = 1; // true
               }
             }
@@ -169,9 +174,10 @@ interval:ms:99
     $y++;
   }
   printf("    h:Left j:Down k:Up l:Right    \n");
+  printf("          score: %5d            \n", @Score);
   @Key = 0; // clear the input key
 }
 END
 {
-  clear(@Board); clear(@Color); clear(@Key);
+  clear(@Board); clear(@Color); clear(@Key); clear(@Score);
 }
