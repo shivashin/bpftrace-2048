@@ -152,9 +152,9 @@ interval:ms:99
       $x = 0;
       while ($x < 4) {
         $i = $x + $y*4;
-        printf("\033[48;5;95m\033[38;5;95m");
+        printf("\033[48;5;95m\033[38;5;0m");
         printf("  ");
-        printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], $i < 8 ? 0 : 255);
+        printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], @Board[$i] < 8 ? 0 : 255);
         if (!@Board[$i] || $j != 1) {
           printf("      ");
         } else if (@Board[$i] < 100) {
@@ -166,7 +166,7 @@ interval:ms:99
       }
       printf("\033[48;5;95m\033[38;5;95m");
       printf("  ");
-      printf("\033[48;5;136m\033[38;5;0m");
+      printf("\033[0m");
       printf("\n");
       $j++;
     }
