@@ -15,6 +15,12 @@ BEGIN {
     @Up = 112;     // p
     @Right = 102;  // f
     @Type = "emacs";
+  } else if (str($1) == "wasd") {
+    @Left = 97;    // a
+    @Down = 115;   // s
+    @Up = 119;     // w
+    @Right = 100;  // d
+    @Type = "wasd";
   } else {
     @Left = 104;   // h
     @Down = 106;   // j
@@ -189,7 +195,9 @@ interval:ms:99
   }
   if (@Type == "emacs") {
     printf("    p:Up n:Down b:Left f:Right    \n");
-  } else {
+  } else if (@Type == "wasd") {
+    printf("    w:Up s:Down a:Left d:Right    \n");
+  }else {
     printf("    h:Left j:Down k:Up l:Right    \n");
   }
   printf("    Quit: <C-c> | score: %5d    \n", @Score);
