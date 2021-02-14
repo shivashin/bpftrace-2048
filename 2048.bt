@@ -30,7 +30,7 @@ BEGIN {
   }
   // initialize board
   $i = 0;
-  unroll(16) { @Board[$i] = 0; $i++; }
+  unroll(16) { @Board[$i] = 0; @Board_copy[$i] = 0; $i++; }
   $first_position = rand % 16;
   @Board[$first_position] = rand % 11 < 10 ? 2 : 4;
   // define color
@@ -202,10 +202,115 @@ interval:ms:99
   }
   printf("    Quit: <C-c> | score: %5d    \n", @Score);
   @Key = 0; // clear the input key
+
+  // check game over
+  $is_move_left = 0;
+  $is_move_down = 0;
+  $is_move_up= 0;
+  $is_move_right= 0;
+  $i = 0;
+  unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+  $prev = 0;
+  while ($prev < 16) {
+    if ($prev % 4) {
+      $next = $prev - 1;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_left = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_left = 1; // true
+            break;
+          }
+        }
+      }
+    }
+    $prev++;
+  }
+  if (!$is_move_left) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 11;
+    while ($prev >= 0) {
+      $next = $prev + 4;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_down = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_down = 1; // true
+            break;
+          }
+        }
+      }
+      $prev--;
+    }
+  }
+  if (!$is_move_down) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 4;
+    while ($prev < 16) {
+      $next = $prev - 4;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_up = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_up = 1; // true
+            break;
+          }
+        }
+      }
+      $prev++;
+    }
+  } 
+  if (!$is_move_up) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 15;
+    while ($prev >= 0) {
+      if ($prev % 4 != 3) {
+        $next = $prev + 1;
+        if (@Board_copy[$prev]) {
+          if (!@Board_copy[$next]) {
+            @Board_copy[$next] = @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_right = 1; // true
+            break;
+          } else {
+            if (@Board_copy[$next] == @Board_copy[$prev]) {
+              @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+              @Board_copy[$prev] = 0;
+              $is_move_right = 1; // true
+              break;
+            }
+          }
+        }
+      }
+      $prev--;
+    }
+  }
+  if(!$is_move_left && !$is_move_down && !$is_move_up && !$is_move_right) { exit(); }
 }
 END
 {
   clear(@Board); clear(@Color); clear(@Key); clear(@Score);
   clear(@Up); clear(@Down); clear(@Left); clear(@Right);
-  clear(@Type);
+  clear(@Type); clear(@Board_copy);
 }
