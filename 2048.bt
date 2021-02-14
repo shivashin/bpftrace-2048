@@ -306,7 +306,12 @@ interval:ms:99
       $prev--;
     }
   }
-  if(!$is_move_left && !$is_move_down && !$is_move_up && !$is_move_right) { exit(); }
+  if(!$is_move_left && !$is_move_down && !$is_move_up && !$is_move_right) { 
+    printf("\n\n");
+    printf("      !! G A M E O V E R !!      \n\n");
+    printf("           Score: %d\n", @Score);
+    exit(); 
+  }
 }
 END
 {
