@@ -232,6 +232,17 @@ interval:ms:99
   printf("    Quit: <C-c> | score: %5d    \n", @Score);
   @Key = 0; // clear the input key
 
+  // check game clear
+  $i = 0;
+  unroll(16) { 
+    if (@Board[$i] == 2048) {
+      printf("\n\n");
+      printf("       !! Y O U   W I N !!      \n\n");
+      printf("           Score: %d\n", @Score);
+      exit();
+    }
+    $i++;
+  }
   // check game over
   $is_move_left = 0;
   $is_move_down = 0;
