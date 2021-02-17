@@ -33,6 +33,21 @@ BEGIN {
   unroll(16) { @Board[$i] = 0; @Board_copy[$i] = 0; @Changed[$i] = 0; $i++; }
   $first_position = rand % 16;
   @Board[$first_position] = rand % 11 < 10 ? 2 : 4;
+  $cnt = 0;
+  $i = 0;
+  while ($i < 16) {
+    if(!@Board[$i]) { $cnt++; }
+    $i++;
+  }
+  $next_position = rand % $cnt;
+  $i = 0;
+  $cnt = 0;
+  while ($i < 16) {
+    if (!@Board[$i]) {
+      if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+    }
+    $i++;
+  }
   // define color
   @Color[0] = 96;
   @Color[1] = 95;
