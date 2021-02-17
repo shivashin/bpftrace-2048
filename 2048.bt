@@ -7,11 +7,47 @@ kprobe:pty_write  // (struct tty_struct *tty, const unsigned char *buf, int c)
 
 BEGIN {
   @Key = 0;
+  @Score = 0;
+  // check key type
+  if (str($1) == "emacs") {
+    @Left = 98;    // b
+    @Down = 110;   // n
+    @Up = 112;     // p
+    @Right = 102;  // f
+    @Type = "emacs";
+  } else if (str($1) == "wasd") {
+    @Left = 97;    // a
+    @Down = 115;   // s
+    @Up = 119;     // w
+    @Right = 100;  // d
+    @Type = "wasd";
+  } else {
+    @Left = 104;   // h
+    @Down = 106;   // j
+    @Up = 107;     // k
+    @Right = 108;  // l
+    @Type = "vim";
+  }
   // initialize board
   $i = 0;
-  unroll(16) { @Board[$i] = 0; $i++; }
+  unroll(16) { @Board[$i] = 0; @Board_copy[$i] = 0; @Changed[$i] = 0; $i++; }
   $first_position = rand % 16;
   @Board[$first_position] = rand % 11 < 10 ? 2 : 4;
+  $cnt = 0;
+  $i = 0;
+  while ($i < 16) {
+    if(!@Board[$i]) { $cnt++; }
+    $i++;
+  }
+  $next_position = rand % $cnt;
+  $i = 0;
+  $cnt = 0;
+  while ($i < 16) {
+    if (!@Board[$i]) {
+      if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+    }
+    $i++;
+  }
   // define color
   @Color[0] = 96;
   @Color[1] = 95;
@@ -31,99 +67,128 @@ BEGIN {
 interval:ms:99
 {
   if (@Key != 0) {
+    $is_move = 0;  // false
+    $i = 0;
+    unroll(16) { @Changed[$i] = 0; $i++; }
     // move
-    if (@Key == 104) { // h:left
-      $prev = 0;
-      while ($prev < 16) {
-        if ($prev % 4) {
-          $next = $prev - 1;
+    if (@Key == @Left) {
+      unroll(3) {
+        $prev = 0;
+        while ($prev < 16) {
+          if ($prev % 4) {
+            $next = $prev - 1;
+            if (@Board[$prev]) {
+              if (!@Board[$next]) {
+                @Board[$next] = @Board[$prev];
+                @Board[$prev] = 0;
+                $is_move = 1; // true
+              } else {
+                if (@Board[$next] == @Board[$prev]  && !@Changed[$prev] && !@Changed[$next]) {
+                  @Board[$next] = @Board[$next] + @Board[$prev];
+                  @Board[$prev] = 0;
+                  @Changed[$next] = 1;
+                  @Score += @Board[$next];
+                  $is_move = 1; // true
+                }
+              }
+            }
+          }
+          $prev++;
+        }
+      }
+    } else if (@Key == @Down) {
+      unroll(3) {
+        $prev = 11;
+        while ($prev >= 0) {
+          $next = $prev + 4;
           if (@Board[$prev]) {
             if (!@Board[$next]) {
               @Board[$next] = @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
             } else {
-              if (@Board[$next] == @Board[$prev]) {
+              if (@Board[$next] == @Board[$prev]  && !@Changed[$prev] && !@Changed[$next]) {
                 @Board[$next] = @Board[$next] + @Board[$prev];
                 @Board[$prev] = 0;
+                @Changed[$next] = 1;
+                @Score += @Board[$next];
+                $is_move = 1; // true
               }
             }
           }
+          $prev--;
         }
-        $prev++;
       }
-    } else if (@Key == 106) { // j:down
-      $prev = 11;
-      while ($prev >= 0) {
-        $next = $prev + 4;
-        if (@Board[$prev]) {
-          if (!@Board[$next]) {
-            @Board[$next] = @Board[$prev];
-            @Board[$prev] = 0;
-          } else {
-            if (@Board[$next] == @Board[$prev]) {
-              @Board[$next] = @Board[$next] + @Board[$prev];
+    } else if (@Key == @Up) {
+      unroll(3) {
+        $prev = 4;
+        while ($prev < 16) {
+          $next = $prev - 4;
+          if (@Board[$prev]) {
+            if (!@Board[$next]) {
+              @Board[$next] = @Board[$prev];
               @Board[$prev] = 0;
+              $is_move = 1; // true
+            } else {
+              if (@Board[$next] == @Board[$prev]  && !@Changed[$prev] && !@Changed[$next]) {
+                @Board[$next] = @Board[$next] + @Board[$prev];
+                @Board[$prev] = 0;
+                @Changed[$next] = 1;
+                @Score += @Board[$next];
+                $is_move = 1; // true
+              }
             }
           }
+          $prev++;
         }
-        $prev--;
       }
-    } else if (@Key == 107) { // k:up
-      $prev = 4;
-      while ($prev < 16) {
-        $next = $prev - 4;
-        if (@Board[$prev]) {
-          if (!@Board[$next]) {
-            @Board[$next] = @Board[$prev];
-            @Board[$prev] = 0;
-          } else {
-            if (@Board[$next] == @Board[$prev]) {
-              @Board[$next] = @Board[$next] + @Board[$prev];
-              @Board[$prev] = 0;
-            }
-          }
-        }
-        $prev++;
-      }
-    } else if (@Key == 108) { // l:right
+    } else if (@Key == @Right) {
+      unroll(3) {
       $prev = 15;
-      while ($prev >= 0) {
-        if ($prev % 4 != 3) {
-          $next = $prev + 1;
-          if (@Board[$prev]) {
-            if (!@Board[$next]) {
-              @Board[$next] = @Board[$prev];
-              @Board[$prev] = 0;
-            } else {
-              if (@Board[$next] == @Board[$prev]) {
-                @Board[$next] = @Board[$next] + @Board[$prev];
+        while ($prev >= 0) {
+          if ($prev % 4 != 3) {
+            $next = $prev + 1;
+            if (@Board[$prev]) {
+              if (!@Board[$next]) {
+                @Board[$next] = @Board[$prev];
                 @Board[$prev] = 0;
+                $is_move = 1; // true
+              } else {
+                if (@Board[$next] == @Board[$prev]  && !@Changed[$prev] && !@Changed[$next]) {
+                  @Board[$next] = @Board[$next] + @Board[$prev];
+                  @Board[$prev] = 0;
+                  @Changed[$next] = 1;
+                  @Score += @Board[$next];
+                  $is_move = 1; // true
+                }
               }
             }
           }
+          $prev--;
         }
-        $prev--;
       }
     }
     // new number generate
-    $cnt = 0;
-    $i = 0;
-    while ($i < 16) {
-      if(!@Board[$i]) { $cnt++; }
-      $i++;
-    }
-    if (!$cnt) { 
-      exit(); // game over
-    } else {
-      $next_position = rand % $cnt;
-    }
-    $i = 0;
-    $cnt = 0;
-    while ($i < 16) {
-      if (!@Board[$i]) {
-        if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+    if ($is_move) {
+      $cnt = 0;
+      $i = 0;
+      while ($i < 16) {
+        if(!@Board[$i]) { $cnt++; }
+        $i++;
       }
-      $i++;
+      if (!$cnt) { 
+        exit(); // game over
+      } else {
+        $next_position = rand % $cnt;
+      }
+      $i = 0;
+      $cnt = 0;
+      while ($i < 16) {
+        if (!@Board[$i]) {
+          if ($cnt++ == $next_position) { @Board[$i] = rand % 11 < 10 ? 2 : 4; }
+        }
+        $i++;
+      }
     }
   }
   printf("\033[%d;%dH", 0, 0);
@@ -136,9 +201,9 @@ interval:ms:99
       $x = 0;
       while ($x < 4) {
         $i = $x + $y*4;
-        printf("\033[48;5;95m\033[38;5;95m");
+        printf("\033[48;5;95m\033[38;5;0m");
         printf("  ");
-        printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], $i < 8 ? 0 : 255);
+        printf("\033[48;5;%dm\033[38;5;%dm", @Color[@Board[$i]], @Board[$i] < 8 ? 0 : 255);
         if (!@Board[$i] || $j != 1) {
           printf("      ");
         } else if (@Board[$i] < 100) {
@@ -150,16 +215,147 @@ interval:ms:99
       }
       printf("\033[48;5;95m\033[38;5;95m");
       printf("  ");
-      printf("\033[48;5;136m\033[38;5;0m");
+      printf("\033[0m");
       printf("\n");
       $j++;
     }
     printf("%s\n", $frame);
     $y++;
   }
+  if (@Type == "emacs") {
+    printf("    p:Up n:Down b:Left f:Right    \n");
+  } else if (@Type == "wasd") {
+    printf("    w:Up s:Down a:Left d:Right    \n");
+  }else {
+    printf("    h:Left j:Down k:Up l:Right    \n");
+  }
+  printf("    Quit: <C-c> | score: %5d    \n", @Score);
   @Key = 0; // clear the input key
+
+  // check game clear
+  $i = 0;
+  unroll(16) { 
+    if (@Board[$i] == 2048) {
+      printf("\n\n");
+      printf("       !! Y O U   W I N !!      \n\n");
+      printf("           Score: %d\n", @Score);
+      exit();
+    }
+    $i++;
+  }
+  // check game over
+  $is_move_left = 0;
+  $is_move_down = 0;
+  $is_move_up= 0;
+  $is_move_right= 0;
+  $i = 0;
+  unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+  $prev = 0;
+  while ($prev < 16) {
+    if ($prev % 4) {
+      $next = $prev - 1;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_left = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_left = 1; // true
+            break;
+          }
+        }
+      }
+    }
+    $prev++;
+  }
+  if (!$is_move_left) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 11;
+    while ($prev >= 0) {
+      $next = $prev + 4;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_down = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_down = 1; // true
+            break;
+          }
+        }
+      }
+      $prev--;
+    }
+  }
+  if (!$is_move_down) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 4;
+    while ($prev < 16) {
+      $next = $prev - 4;
+      if (@Board_copy[$prev]) {
+        if (!@Board_copy[$next]) {
+          @Board_copy[$next] = @Board_copy[$prev];
+          @Board_copy[$prev] = 0;
+          $is_move_up = 1; // true
+          break;
+        } else {
+          if (@Board_copy[$next] == @Board_copy[$prev]) {
+            @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_up = 1; // true
+            break;
+          }
+        }
+      }
+      $prev++;
+    }
+  } 
+  if (!$is_move_up) {
+    $i = 0;
+    unroll(16) { @Board_copy[$i] = @Board[$i]; $i++; }
+    $prev = 15;
+    while ($prev >= 0) {
+      if ($prev % 4 != 3) {
+        $next = $prev + 1;
+        if (@Board_copy[$prev]) {
+          if (!@Board_copy[$next]) {
+            @Board_copy[$next] = @Board_copy[$prev];
+            @Board_copy[$prev] = 0;
+            $is_move_right = 1; // true
+            break;
+          } else {
+            if (@Board_copy[$next] == @Board_copy[$prev]) {
+              @Board_copy[$next] = @Board_copy[$next] + @Board_copy[$prev];
+              @Board_copy[$prev] = 0;
+              $is_move_right = 1; // true
+              break;
+            }
+          }
+        }
+      }
+      $prev--;
+    }
+  }
+  if(!$is_move_left && !$is_move_down && !$is_move_up && !$is_move_right) { 
+    printf("\n\n");
+    printf("      !! G A M E O V E R !!      \n\n");
+    printf("           Score: %d\n", @Score);
+    exit(); 
+  }
 }
 END
 {
-  clear(@Board); clear(@Color); clear(@Key);
+  clear(@Board); clear(@Color); clear(@Key); clear(@Score);
+  clear(@Up); clear(@Down); clear(@Left); clear(@Right);
+  clear(@Type); clear(@Board_copy); clear(@Changed);
 }
