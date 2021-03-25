@@ -1,5 +1,7 @@
 # bpftrace-2048
 
+![bpftrace-2048](https://user-images.githubusercontent.com/14307252/112498315-bfc16e80-8dc9-11eb-91d9-339525d3ea30.png)
+
 ## Requirements
 
 + Linux 5.3 or greater
